@@ -1,0 +1,280 @@
+
+        ],
+        "type": "canvas"
+      }
+    },
+    "YoYoTotalProdPeriod": {
+      "name": "Solar Panels - Production Over Period Template",
+      "uid": "YoYoTotalProdPeriod",
+      "kind": 1,
+      "model": {
+        "datasource": {
+          "type": "datasource",
+          "uid": "-- Mixed --"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "fieldMinMax": true,
+            "mappings": [],
+            "noValue": "0",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "#323232",
+                  "value": 0
+                },
+                {
+                  "color": "#3c3c3c",
+                  "value": 42
+                },
+                {
+                  "color": "#464646",
+                  "value": 82
+                },
+                {
+                  "color": "#505050",
+                  "value": 126
+                },
+                {
+                  "color": "#5a5a5a",
+                  "value": 168
+                },
+                {
+                  "color": "#0000ff",
+                  "value": 210
+                },
+                {
+                  "color": "#0019ff",
+                  "value": 252
+                },
+                {
+                  "color": "#0032ff",
+                  "value": 294
+                },
+                {
+                  "color": "#004bff",
+                  "value": 336
+                },
+                {
+                  "color": "#0064ff",
+                  "value": 378
+                },
+                {
+                  "color": "#007dff",
+                  "value": 420
+                },
+                {
+                  "color": "#0096ff",
+                  "value": 462
+                },
+                {
+                  "color": "#00afff",
+                  "value": 504
+                },
+                {
+                  "color": "#00c8ff",
+                  "value": 546
+                },
+                {
+                  "color": "#00e1ff",
+                  "value": 588
+                },
+                {
+                  "color": "#00f0ff",
+                  "value": 630
+                },
+                {
+                  "color": "#00ffe1",
+                  "value": 672
+                },
+                {
+                  "color": "#00ffc8",
+                  "value": 714
+                },
+                {
+                  "color": "#00ffaf",
+                  "value": 756
+                },
+                {
+                  "color": "#00ff96",
+                  "value": 798
+                },
+                {
+                  "color": "#00ff7d",
+                  "value": 840
+                },
+                {
+                  "color": "#00ff64",
+                  "value": 882
+                },
+                {
+                  "color": "#00ff4b",
+                  "value": 924
+                },
+                {
+                  "color": "#00ff32",
+                  "value": 966
+                },
+                {
+                  "color": "#00ff19",
+                  "value": 1008
+                },
+                {
+                  "color": "#00ff00",
+                  "value": 1050
+                },
+                {
+                  "color": "#19ff00",
+                  "value": 1092
+                },
+                {
+                  "color": "#32ff00",
+                  "value": 1134
+                },
+                {
+                  "color": "#4bff00",
+                  "value": 1176
+                },
+                {
+                  "color": "#64ff00",
+                  "value": 1218
+                },
+                {
+                  "color": "#7dff00",
+                  "value": 1260
+                },
+                {
+                  "color": "#96ff00",
+                  "value": 1302
+                },
+                {
+                  "color": "#afff00",
+                  "value": 1344
+                },
+                {
+                  "color": "#c8ff00",
+                  "value": 1386
+                },
+                {
+                  "color": "#e1ff00",
+                  "value": 1428
+                },
+                {
+                  "color": "#f0ff00",
+                  "value": 1470
+                },
+                {
+                  "color": "#ffff00",
+                  "value": 1512
+                },
+                {
+                  "color": "#fff000",
+                  "value": 1554
+                },
+                {
+                  "color": "#ffe100",
+                  "value": 1596
+                },
+                {
+                  "color": "#ffc800",
+                  "value": 1638
+                },
+                {
+                  "color": "#ffaf00",
+                  "value": 1680
+                },
+                {
+                  "color": "#ff9600",
+                  "value": 1722
+                },
+                {
+                  "color": "#ff7d00",
+                  "value": 1764
+                },
+                {
+                  "color": "#ff6400",
+                  "value": 1806
+                },
+                {
+                  "color": "#ff4b00",
+                  "value": 1848
+                },
+                {
+                  "color": "#ff3200",
+                  "value": 1890
+                },
+                {
+                  "color": "#ff1900",
+                  "value": 1932
+                },
+                {
+                  "color": "#ff0000",
+                  "value": 1974
+                }
+              ]
+            },
+            "unit": "watth"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "/[0-2][0-9]Color/"
+              },
+              "properties": [
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#ffffff",
+                        "value": null
+                      },
+                      {
+                        "color": "#000000",
+                        "value": 400
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "libraryPanel": {
+          "uid": "YoYoTotalProdPeriod"
+        },
+        "options": {
+          "inlineEditing": false,
+          "panZoom": true,
+          "root": {
+            "background": {
+              "color": {
+                "fixed": "transparent"
+              },
+              "image": {
+                "field": "",
+                "fixed": "",
+                "mode": "fixed"
+              }
+            },
+            "border": {
+              "color": {
+                "fixed": "dark-green"
+              }
+            },
+            "constraint": {
+              "horizontal": "left",
+              "vertical": "top"
+            },
+            "elements": [

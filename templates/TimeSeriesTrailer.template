@@ -1,0 +1,72 @@
+
+          ]
+        },
+        "libraryPanel": {
+          "uid": "ZoZoTimeSeries"
+        },
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "fetzerch-sunandmoon-datasource",
+              "uid": "${DS_SUN_AND_MOON-FOR-LIBRARY-PANEL}"
+            },
+            "hide": false,
+            "refId": "A",
+            "target": [
+              "sun_altitude"
+            ]
+          },
+          {
+            "alias": "Clouds",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
+            },
+            "groupBy": [
+              {
+                "params": [
+                  "$__interval"
+                ],
+                "type": "time"
+              },
+              {
+                "params": [
+                  "null"
+                ],
+                "type": "fill"
+              }
+            ],
+            "hide": false,
+            "measurement": "weather",
+            "orderByTime": "ASC",
+            "policy": "autogen",
+            "refId": "B",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "clouds"
+                  ],
+                  "type": "field"
+                },
+                {
+                  "params": [],
+                  "type": "mean"
+                }
+              ]
+            ],
+            "tags": []
+          },
