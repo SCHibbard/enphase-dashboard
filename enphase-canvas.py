@@ -871,6 +871,7 @@ if __name__ == "__main__":
     add_template('Trailer.template', FinalFile)
     FinalFile.close()
 
-    print(f"\tDashboard JSON file '{out_file_name}' created. Go to Grafana, Dashboards, New, Import & open this file.")
+    print(f"\nDashboard JSON file '{out_file_name}' created. Go to Grafana, Dashboards, New, Import & open this file.\n"
+          f"If you have not run Powerwall-Dashboard's ./setup.sh since running setup-enphase.sh, be sure to, followed by reboot!\n")
     save_session(p_array)
 sys.exit(0)

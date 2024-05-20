@@ -227,8 +227,9 @@ cat << EOF
 ------------------[ Final Setup Instructions ]-----------------
 
 1) Run ./setup.sh in Dashboard home folder
-2) Open Grafana at http://localhost:9000/ ... use admin/admin for login or Grafana credentials you created.
-3) From 'Dashboard\Browse', select 'New/Import', browse to ${PWD}/enphase-dashboards and upload ${DASHBOARD_ENPHASE}.
+2) Reboot computer
+3) Open Grafana at http://localhost:9000/ ... use admin/admin for login or Grafana credentials you created.
+4) From 'Dashboard\Browse', select 'New/Import', browse to ${PWD}/enphase-dashboards and upload ${DASHBOARD_ENPHASE}.
 
 EOF
 
