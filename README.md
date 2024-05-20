@@ -40,6 +40,7 @@ If you create canvas panels, the dashboard generated will include a time-series 
 Powerwall-dashboard currently uses Grafana version 9.  With version 10, Grafana introduced a new 'Canvas' panel, which can be used to display a graphic of your solar array.  The shell script will offer to upgrade to version 10 if you are not running.  Caveats:
 - Grafana 10 may cause problems with other panels you have setup.  I have only experienced one annoyance.  The panel 'Current State' that is included with Powerwall-Dashboard default dashboards uses the Boom Table visualization type, which is depreciated in version 10.  As of 10.4.1 the panel still works but has an annoying deprecation warning.  An updated 'Current State' panel is included in the repo 'current-state-canvas-panel.json'.  If you load this into Grafana as a dashboard (Grafana > Dashboards > New > Import) it will create a single panel dashboard and add the panel to the 'Library Panels'. You can then delete the Boom Table version in your dashboard(s) and add this one from the library.
 - Grafana 10 changes the titles of panels from being centered to Left-justified.  This has proven annoying to some.
+- Canvas panels do not scale well.  If a panel is resized due to screen size, the canvas will be cut off instead of sized to fit.  Hoping that improves in later revs of Grafana!
 
 During the shell-script setup, if you are not running version 10, you be asked if you want to update.  If you are running it already or update it, you will have the opportunity later to create Canvas panels for your solar array.
 
