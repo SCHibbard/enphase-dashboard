@@ -7,12 +7,12 @@ This project will supplement The Powerwall-Dashboard project by @jasoncox with s
 
 ## Requirements ##
 
-- This has only been tested on a host system running Ubuntu.  Feedback welcome on experiences with other systems.
-- Powerwall-Dashboard (github.com/jasonacox/Powerwall-Dashboard) is installed and running on the host system.
-- An account has been created for your Enphase system at enlighten.enphaseenergy.com.
+- Host system running Linux. This has only been tested on Ubuntu.  Feedback welcome on experiences with other systems.
+- Powerwall-Dashboard (github.com/jasonacox/Powerwall-Dashboard) installed and running on the host system.
+- An account created for your Enphase system at enlighten.enphaseenergy.com.
 - The IP address on your local network
 - The serial number of your Enphase Gateway (can be obtained from https://enlighten.enphaseenergy.com > System > Devices).
-- If you plan to create Canvas panels as shown above, you will need a diagram of your arrays that maps the serial numbers of each panel to its physical location in your installation. Unfortunately, Enphase does not provide this in their customer-access portal.  You will need to contact your installer to get that information.
+- A diagram of your arrays that maps the serial numbers of each panel to its physical location in your installation if you plan to create Canvas panels as shown above. Unfortunately, Enphase does not provide this in their customer-access portal.  You will need to contact your installer to get that information.
 
 ## Installation ##
 - Clone this repo on the host running the dashboard:
