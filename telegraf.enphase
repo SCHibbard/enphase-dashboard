@@ -1,0 +1,33 @@
+
+###############################################################################
+#                 Powerwall Dashboard telegraf.local (SHibbard)               #
+#                            Updated 03-Sep-2023                              #
+###############################################################################
+
+# To save this data with infinite retention
+[[outputs.influxdb]]
+	namepass = ["LocalData_*"]
+	urls = ["http://influxdb:8086"]
+	database = "powerwall"
+	skip_database_creation = true
+	retention_policy = "local"
+
+[[inputs.http]]
+	urls = [
+		"https://0.0.0.0/api/v1/production/inverters"
+	]
+	method = "GET"
+	data_format = "json"
+	headers = {"Accept" = "application/json"}
+	headers = {"Authorization" = "Bearer x"}
+	interval = "5m"
+	timeout = "10s"
+	insecure_skip_verify = true
+
+	name_override = "LocalData_Enphase"
+	tagexclude = ["url", "host"]
+	fielddrop = ["devType", "maxReportWatts"]
+	json_string_fields = ["serialNumber"]
+	tag_keys = ["serialNumber"]
+	json_time_key = "lastReportDate"
+	json_time_format = "unix"
