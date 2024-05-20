@@ -1,0 +1,1022 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_INFLUXDB-FOR-LIBRARY-PANEL",
+      "label": "InfluxDB",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB",
+      "usage": {
+        "libraryPanels": [
+          {
+            "name": "Current State (Canvas)",
+            "uid": "adif1e3u0xo1se"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VAR_TZ",
+      "type": "constant",
+      "label": "Timezone",
+      "value": "America/Chicago",
+      "description": ""
+    }
+  ],
+  "__elements": {
+    "adif1e3u0xo1se": {
+      "name": "Current State (Canvas)",
+      "uid": "adif1e3u0xo1se",
+      "kind": 1,
+      "model": {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
+        },
+        "description": "System Current State using Canvas visualization.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "fixed"
+            },
+            "mappings": [],
+            "noValue": "Idle",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "kwatt"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Battery"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": -100000,
+                        "result": {
+                          "color": "#000000",
+                          "index": 0
+                        },
+                        "to": -0.1
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": -0.09999,
+                        "result": {
+                          "color": "transparent",
+                          "index": 1
+                        },
+                        "to": 0.09999
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": 0.1,
+                        "result": {
+                          "color": "#000000",
+                          "index": 2
+                        },
+                        "to": 100000
+                      },
+                      "type": "range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Battery Text+Color"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": -100000,
+                        "result": {
+                          "color": "green",
+                          "index": 0,
+                          "text": "Charging"
+                        },
+                        "to": -0.1
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": -0.09,
+                        "result": {
+                          "color": "#808080",
+                          "index": 1,
+                          "text": "Idle"
+                        },
+                        "to": 0.09
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": 0.1,
+                        "result": {
+                          "color": "red",
+                          "index": 2,
+                          "text": "Discharging"
+                        },
+                        "to": 100000
+                      },
+                      "type": "range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Grid"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": -100000,
+                        "result": {
+                          "color": "#000000",
+                          "index": 0
+                        },
+                        "to": -0.09
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": -0.08999,
+                        "result": {
+                          "color": "transparent",
+                          "index": 1
+                        },
+                        "to": 0.08999
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": 0.09,
+                        "result": {
+                          "color": "#000000",
+                          "index": 2
+                        },
+                        "to": 100000
+                      },
+                      "type": "range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Grid Text+Color"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": -100000,
+                        "result": {
+                          "color": "purple",
+                          "index": 0,
+                          "text": "Exporting"
+                        },
+                        "to": -0.09
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": -0.089999,
+                        "result": {
+                          "color": "#808080",
+                          "index": 1,
+                          "text": "Idle"
+                        },
+                        "to": 0.08999
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": 0.09,
+                        "result": {
+                          "color": "red",
+                          "index": 2,
+                          "text": "Importing"
+                        },
+                        "to": 100000
+                      },
+                      "type": "range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Solar"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": -10,
+                        "result": {
+                          "color": "transparent",
+                          "index": 0
+                        },
+                        "to": 0.09999
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": 0.1,
+                        "result": {
+                          "color": "#000000",
+                          "index": 1
+                        },
+                        "to": 100000
+                      },
+                      "type": "range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Solar Text+Color"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": -10,
+                        "result": {
+                          "color": "yellow",
+                          "index": 0,
+                          "text": "No Generation"
+                        },
+                        "to": 0.0999
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "from": 0.1,
+                        "result": {
+                          "color": "yellow",
+                          "index": 1,
+                          "text": "Generating"
+                        },
+                        "to": 100000
+                      },
+                      "type": "range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "libraryPanel": {
+          "uid": "adif1e3u0xo1se"
+        },
+        "options": {
+          "inlineEditing": false,
+          "panZoom": false,
+          "root": {
+            "background": {
+              "color": {
+                "fixed": "transparent"
+              },
+              "image": {
+                "fixed": "",
+                "mode": "fixed"
+              },
+              "size": "original"
+            },
+            "border": {
+              "color": {
+                "fixed": "dark-green"
+              }
+            },
+            "constraint": {
+              "horizontal": "left",
+              "vertical": "top"
+            },
+            "elements": [
+              {
+                "background": {
+                  "color": {
+                    "fixed": "yellow"
+                  },
+                  "image": {
+                    "fixed": ""
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "right",
+                  "color": {
+                    "field": "Solar",
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Solar",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Solar Value",
+                "placement": {
+                  "height": 25,
+                  "left": 75,
+                  "top": 120,
+                  "width": 200
+                },
+                "type": "metric-value"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "blue"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "right",
+                  "color": {
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Home",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Home Value",
+                "placement": {
+                  "height": 25,
+                  "left": 75,
+                  "top": 90,
+                  "width": 200
+                },
+                "type": "metric-value"
+              },
+              {
+                "background": {
+                  "color": {
+                    "field": "Grid Text+Color",
+                    "fixed": "#5a5a5a"
+                  },
+                  "image": {
+                    "fixed": ""
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "right",
+                  "color": {
+                    "field": "Grid",
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Grid",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Grid Value",
+                "placement": {
+                  "height": 25,
+                  "left": 75,
+                  "top": 60,
+                  "width": 200
+                },
+                "type": "metric-value"
+              },
+              {
+                "background": {
+                  "color": {
+                    "field": "Battery Text+Color",
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "right",
+                  "color": {
+                    "field": "Battery",
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Battery",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Battery Value",
+                "placement": {
+                  "height": 25,
+                  "left": 75,
+                  "top": 30,
+                  "width": 200
+                },
+                "type": "metric-value"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Solar Text+Color",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Solar Flow",
+                "placement": {
+                  "height": 25,
+                  "left": 80,
+                  "top": 120,
+                  "width": 150
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "fixed": "Using"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Home Flow",
+                "placement": {
+                  "height": 25,
+                  "left": 80,
+                  "top": 90,
+                  "width": 150
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Grid Text+Color",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Grid Flow",
+                "placement": {
+                  "height": 25,
+                  "left": 80,
+                  "top": 60,
+                  "width": 150
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  },
+                  "image": {
+                    "fixed": ""
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "#000000"
+                  },
+                  "size": 16,
+                  "text": {
+                    "field": "Battery Text+Color",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Battery Flow",
+                "placement": {
+                  "height": 25,
+                  "left": 80,
+                  "top": 30,
+                  "width": 150
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "rgb(204, 204, 220)"
+                  },
+                  "size": 16,
+                  "text": {
+                    "fixed": "Solar"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Solar Title",
+                "placement": {
+                  "height": 25,
+                  "left": 10,
+                  "top": 120,
+                  "width": 60
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "rgb(204, 204, 220)"
+                  },
+                  "size": 16,
+                  "text": {
+                    "fixed": "Home"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Home Title",
+                "placement": {
+                  "height": 25,
+                  "left": 10,
+                  "top": 90,
+                  "width": 60
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "rgb(204, 204, 220)"
+                  },
+                  "size": 16,
+                  "text": {
+                    "fixed": "Grid"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Grid Title",
+                "placement": {
+                  "height": 25,
+                  "left": 10,
+                  "top": 60,
+                  "width": 60
+                },
+                "type": "text"
+              },
+              {
+                "background": {
+                  "color": {
+                    "fixed": "transparent"
+                  }
+                },
+                "border": {
+                  "color": {
+                    "fixed": "dark-green"
+                  }
+                },
+                "config": {
+                  "align": "left",
+                  "color": {
+                    "fixed": "rgb(204, 204, 220)"
+                  },
+                  "size": 16,
+                  "text": {
+                    "fixed": "Battery"
+                  },
+                  "valign": "middle"
+                },
+                "connections": [],
+                "constraint": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "name": "Battery Title",
+                "placement": {
+                  "height": 25,
+                  "left": 10,
+                  "top": 30,
+                  "width": 60
+                },
+                "type": "text"
+              }
+            ],
+            "name": "Element 1712618279668",
+            "placement": {
+              "height": 100,
+              "left": 0,
+              "top": 0,
+              "width": 100
+            },
+            "type": "frame"
+          },
+          "showAdvancedTypes": true
+        },
+        "pluginVersion": "10.4.1",
+        "targets": [
+          {
+            "alias": "Home",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
+            },
+            "query": "SELECT last(\"load_instant_power\")  / 1000 FROM \"raw\".\"http\" WHERE time >= now() - 10m",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "time_series"
+          },
+          {
+            "alias": "Solar",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
+            },
+            "hide": false,
+            "query": "SELECT last(\"solar_instant_power\")  / 1000 FROM \"raw\".\"http\" WHERE time >= now() - 10m",
+            "rawQuery": true,
+            "refId": "B",
+            "resultFormat": "time_series"
+          },
+          {
+            "alias": "Battery",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
+            },
+            "hide": false,
+            "query": "SELECT last(\"battery_instant_power\")  / 1000 FROM \"raw\".\"http\" WHERE time >= now() - 10m",
+            "rawQuery": true,
+            "refId": "C",
+            "resultFormat": "time_series"
+          },
+          {
+            "alias": "Grid",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
+            },
+            "hide": false,
+            "query": "SELECT last(\"site_instant_power\")  / 1000 FROM \"raw\".\"http\" WHERE time >= now() - 10m",
+            "rawQuery": true,
+            "refId": "D",
+            "resultFormat": "time_series"
+          }
+        ],
+        "title": "Current State",
+        "transformations": [
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "Battery Text+Color",
+              "mode": "reduceRow",
+              "reduce": {
+                "include": [
+                  "Battery"
+                ],
+                "reducer": "lastNotNull"
+              }
+            }
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "Grid Text+Color",
+              "mode": "reduceRow",
+              "reduce": {
+                "include": [
+                  "Grid"
+                ],
+                "reducer": "lastNotNull"
+              }
+            }
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "Solar Text+Color",
+              "mode": "reduceRow",
+              "reduce": {
+                "include": [
+                  "Solar"
+                ],
+                "reducer": "lastNotNull"
+              }
+            }
+          }
+        ],
+        "type": "canvas"
+      }
+    }
+  },
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.4.1"
+    },
+    {
+      "type": "datasource",
+      "id": "influxdb",
+      "name": "InfluxDB",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 9,
+        "y": 14
+      },
+      "id": 168,
+      "libraryPanel": {
+        "uid": "adif1e3u0xo1se",
+        "name": "Current State (Canvas)"
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "description": "Timezone",
+        "hide": 2,
+        "label": "Timezone",
+        "name": "tz",
+        "query": "${VAR_TZ}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_TZ}",
+          "text": "${VAR_TZ}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_TZ}",
+            "text": "${VAR_TZ}",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "America/Chicago",
+  "title": "Current State Canvas Panel",
+  "version": 2,
+  "weekStart": ""
+}
