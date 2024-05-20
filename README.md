@@ -15,17 +15,11 @@ This project will supplement The Powerwall-Dashboard project by @jasoncox with s
 - A diagram of your arrays that maps the serial numbers of each panel to its physical location in your installation if you plan to create Canvas panels as shown above. Unfortunately, Enphase does not provide this in their customer-access portal.  You will need to contact your installer to get that information.
 
 ## Installation ##
-- Clone this repo on the host running the dashboard:
+- Clone this repo on the host running the dashboard.  It should be placed under the folder where Powerwall-Dashboard is installed, so that the installation script can find necessary environment files.  If Powerwall-Dashboard is installed in its default directory, the commands would be:
 ```
+cd ~/Powerwall-Dashboard
 git clone https://github.com/SCHibbard/enphase-dashboard.git
 ```
-
-- Move the cloned repo under the main folder for your Powerwall-Dashboard installation, so that the installation script can find necessary environment files.
-e.g.:
-```
-mv ~/enphase-dashboard ~/Powerwall-Dashboard
-```
-
 
 ## Setup ##
 Two programs are included, a setup script 'setup-enphase.sh' and a Python program 'enphase-canvas.py' The shell script will call the Python program, so you should only have to execute the shell script.
