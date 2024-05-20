@@ -35,7 +35,7 @@ cd ~/Powerwall-Dashboard/enphase-dashboard
 ./setup-enphase.sh
 ```
 This will add support for gathering Enphase inverter data and storing it in the same InfluxDB database that Powerwall-Dashboard uses.  This includes:
-- Adding a new InfluxDB retention policy 'local, where the Enphase data will be stored.
+- Adding a new InfluxDB retention policy 'local', where the Enphase data will be stored.
 - Adding lines to telegraf.local for Enphase support
 - Optionally executing enphase-canvas.py to create custom canvas panels of your solar array. This requires Grafana 10, see below.
 - After the Enphase setup is complete, run Powerwall-Dashboard's setup.sh script to activate the added support.
