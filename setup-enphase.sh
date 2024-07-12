@@ -237,7 +237,7 @@ cat << EOF
 EOF
 
 
-if [ ${GRAFANA_CUR} = ${GRAFANA_REQ} ]; then
+if [ ! ${GRAFANA_CUR} \< ${GRAFANA_REQ} ]; then
     read -r -p "Would you like to create graphic Canvas dashboards of your array? [y/N] " response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         # Add Pan & Zoom support if not there
