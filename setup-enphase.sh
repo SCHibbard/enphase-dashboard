@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# setup-enphase.sh
+# v0.5.0
 # Interactive Setup to add Enphase Data to Powerwall InfluxDB Database
 
 # Stop on Errors
@@ -208,7 +210,8 @@ sed -i "s/headers = {\"Authorization\" = \"Bearer.*\"}/headers = {\"Authorizatio
 
 # Check Grafana version - offer to update to 10 if older.
 GRAFANA_CUR=$(grep -E "image: grafana/grafana:" "${POWERWALL_YML_FILE}" | sed -n -e 's/^.*grafana://p')
-if [ ${GRAFANA_CUR} != ${GRAFANA_REQ} ]; then
+
+if [ ${GRAFANA_CUR} \< ${GRAFANA_REQ} ]; then
     
     read -r -p "Grafana version is currently ${GRAFANA_CUR}. ${GRAFANA_REQ} required to use Canvas panels.  Do you want to update? [y/N] " response
         if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
@@ -218,7 +221,7 @@ if [ ${GRAFANA_CUR} != ${GRAFANA_REQ} ]; then
             GRAFANA_CUR=${GRAFANA_REQ}
         fi
 else
-    echo "Grafana version is currently ${GRAFANA_CUR}, Canvas panels supported."
+    echo "Grafana version is currently ${GRAFANA_CUR}, Canvas panels already supported."
 fi
 
 cat << EOF
