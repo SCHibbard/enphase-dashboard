@@ -36,13 +36,13 @@ This will add support for gathering Enphase inverter data and storing it in the 
 
 If you create canvas panels, the dashboard generated will include a time-series panel of all inverters' production in addition to the two canvas panels (as image above).  If you do NOT create canvas panels, 'current-state-canvas-panel.json' is included in the repo. It can be installed as a dashboard in Grafana to display a time-series panel of microinverter production.
 
-## Grafana 10 ##
-Powerwall-dashboard currently uses Grafana version 9.  With version 10, Grafana introduced a new 'Canvas' panel, which can be used to display a graphic of your solar array.  The shell script will offer to upgrade to version 10 if you are not running.  Caveats:
-- Grafana 10 may cause problems with other panels you have setup.  I have only experienced one annoyance.  The panel 'Current State' that is included with Powerwall-Dashboard default dashboards uses the Boom Table visualization type, which is depreciated in version 10.  As of 10.4.1 the panel still works but has an annoying deprecation warning.  An updated 'Current State' panel is included in the repo 'current-state-canvas-panel.json'.  If you load this into Grafana as a dashboard (Grafana > Dashboards > New > Import) it will create a single panel dashboard and add the panel to the 'Library Panels'. You can then delete the Boom Table version in your dashboard(s) and add this one from the library.
+## Grafana Versions ##
+Powerwall-dashboard currently uses Grafana version 9.  With version 10, Grafana introduced a new 'Canvas' panel, which is used to display the graphics of your solar array. If Powerwall is not running Grafana 10 or later, these graphic depictions will not work.  The shell script will offer to upgrade to version 10 if you are not running it currently.  Caveats:
+- Grafana 10 may cause problems with other panels you have setup.  I have only experienced one annoyance with respect to Powerwall Dashboard.  The panel 'Current State' that is included with Powerwall-Dashboard default dashboards uses the Boom Table visualization type, which is depreciated in version 10.  As of 10.4.1 the panel still works but has an annoying deprecation warning.  An updated 'Current State' panel is included in the repo (file 'current-state-canvas-panel.json').  If you load this into Grafana as a dashboard (Grafana > Dashboards > New > Import) it will create a single panel dashboard and add the panel to the 'Library Panels'. You can then delete the Boom Table version in your dashboard(s) and add this one from the library.
 - Grafana 10 changes the titles of panels from being centered to Left-justified.  This has proven annoying to some.
-- Canvas panels do not scale well.  If a panel is resized due to screen size, the canvas will be cut off instead of sized to fit.  Hoping that improves in later revs of Grafana!
+- Canvas panels do not scale well.  If a panel is resized due to screen size, the canvas will be cut off instead of sized to fit.  Grafana version 11 sort of fixes this, by adding 'Infinite panning' to the canvas Pan and zoom option.  While the initial display of the canvas will not auto-fit to a dashboard panel's size, the graphic can be zoomed out to display the whole panel.  
 
-During the shell-script setup, if you are not running version 10, you be asked if you want to update.  If you are running it already or update it, you will have the opportunity later to create Canvas panels for your solar array.
+During the shell-script setup, if you are not running version 10, you be asked if you want to update to it.  If you are running it already or update it during setup, you will have the opportunity later to create Canvas panels for your solar array. Grafana 11 (with the new pan & zoopm features) is not offered as an update in the current release of enphase-dashboard, but will be in a future release.  You can of course manually edit tp update to grafana 11 on your own.
 
 ## Creating Canvas Panels with enphase-canvas.py ##
 enphase-canvas.py is a terminal-based program that will generate a Grafana dashboard of your array containing 3 panels as shown above:
@@ -83,4 +83,4 @@ Notes:
 
 
 ## Final Notes ##
-I am a newbie with Python.  I programmed in assembler, C, Pascal, and other ancient languages between the late '70s and mid '80s before a hiatus of about 35 years.  I know the Python is very far from Pythonic!  While I plan to improve that, constructive criticism or edits are welcome!
+I am a newbie with Python.  I programmed in assembler, C, Pascal, and other ancient languages between the late '70s and mid '80s before a hiatus of about 35 years.  I know the Python here is very far from Pythonic!  While I plan to improve that, constructive criticism or edits are welcome!
