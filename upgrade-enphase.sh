@@ -63,7 +63,7 @@ cp -n ./enphase-dashboard-old/*.env enphase-dashboard
 
 echo
 echo "Successfully updated to ${ONLINE_V}, and copied environment variables, arrays and jsons to new install."
-read -r -p "Previous version is in enphase-dashboard-old directory in Delete that? [y/N] " response
+read -r -p "Previous version is in enphase-dashboard-old directory. Delete that? [y/N] " response
 if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
 	rm tmp.sh
     exit 1
