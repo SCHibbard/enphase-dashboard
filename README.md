@@ -21,6 +21,19 @@ cd ~/Powerwall-Dashboard
 git clone https://github.com/SCHibbard/enphase-dashboard.git
 ```
 
+## Updating ##
+To install a newer version, rename the folder with the older version & clone the new version in the Powerwall-Dashboard directory.  After, move in your environment variables and any dashboards you've created, except the default ones. Example:
+```
+cd ~/Powerwall-Dashboard
+mv enphase-dashboard enphase-dashboard-old
+git clone https://github.com/SCHibbard/enphase-dashboard.git
+cd enphase-dashboard-old
+rm current-state-canvas-panel.json enphase-basic-panel.json
+mv *.save *.json *.env ../enphase-dashboard
+cd ..
+rm -rf enphase-dashboard-old
+```
+
 ## Setup ##
 Two programs are included, a setup script 'setup-enphase.sh' and a Python program 'enphase-canvas.py' The shell script will call the Python program, so you should only have to execute the shell script.
 - execute the setup script under the installation folder.  Example:
