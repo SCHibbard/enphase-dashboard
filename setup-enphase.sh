@@ -12,8 +12,11 @@ VERSION="0.1.1"
 ENPHASE_ENV_FILE="./enphase.env"
 TELEGRAF_LOCAL="../telegraf.local"
 GRAFANA_ENV_FILE='../grafana.env'
-GRAFANA_REQ="10.4.1-ubuntu"
-GRAFANA_CUR=""
+GRAFANA_REQ="10.4.1-ubuntu"				# Minimum Grafana required for Canvas
+GRAFANA_11="11.1.0-ubuntu"				# Grafana to support infinite pan & zoom
+GRAFANA_CUR="" 							# Grafana version currently in use, 0 added if < 10
+GRAFANA_CUR_DISPLAY=""					# Current Grafana Version
+GRAFANA_SELECTED=""						# Grafana version to update to
 POWERWALL_YML_FILE='../powerwall.yml'
 RUN_ONCE_FILE="../influxdb/run-once-local.sql"
 ENPHASE_USER=""
@@ -210,18 +213,38 @@ sed -i "s/headers = {\"Authorization\" = \"Bearer.*\"}/headers = {\"Authorizatio
 
 # Check Grafana version - offer to update to 10 if older.
 GRAFANA_CUR=$(grep -E "image: grafana/grafana:" "${POWERWALL_YML_FILE}" | sed -n -e 's/^.*grafana://p')
+GRAFANA_CUR_DISPLAY=${GRAFANA_CUR}
+TMP=$(echo ${GRAFANA_CUR} | cut -c1)
+if [ ${TMP} = "9" ]; then
+	GRAFANA_CUR="0${GRAFANA_CUR}"
+fi
 
-if [ ${GRAFANA_CUR} \< ${GRAFANA_REQ} ]; then
-    
-    read -r -p "Grafana version is currently ${GRAFANA_CUR}. ${GRAFANA_REQ} required to use Canvas panels.  Do you want to update? [y/N] " response
+GRAFANA_SELECTED=${GRAFANA_CUR_DISPLAY}
+
+if [ ${GRAFANA_CUR} \< ${GRAFANA_REQ} ]; then   
+    read -r -p "Grafana version is currently ${GRAFANA_CUR_DISPLAY}. ${GRAFANA_REQ} required to use Canvas panels.  Do you want to update? [y/N] " response
         if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-            echo "Updating Grafana version to ${GRAFANA_REQ} in '${POWERWALL_YML_FILE}'."
-            sed -i "s/grafana\/grafana:.\+-ubuntu$/grafana\/grafana:${GRAFANA_REQ}/" "${POWERWALL_YML_FILE}"
-            echo "Refer to READ.ME for compatibility tips with Grafana ${GRAFANA_REQ}."
-            GRAFANA_CUR=${GRAFANA_REQ}
+            GRAFANA_SELECTED=${GRAFANA_REQ}
         fi
 else
-    echo "Grafana version is currently ${GRAFANA_CUR}, Canvas panels already supported."
+    echo "Grafana version is currently ${GRAFANA_CUR_DISPLAY}, mininum required is ${GRAFANA_REQ}. Canvas panels already supported."
+fi
+
+if [ ${GRAFANA_SELECTED} \< ${GRAFANA_11} ]; then
+	echo
+	echo "${GRAFANA_11} adds support to infinately pan and zoom canvas panels, helpful with large solar arrays."
+    echo "Grafana classifies this as an experimantal feature, but it has worked fine on Solar Array Canvas Panels."
+    read -r -p "Upgrade to Grafana ${GRAFANA_11}? [y/N] " response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    	GRAFANA_SELECTED=${GRAFANA_11}
+    fi
+fi
+
+if [ ! ${GRAFANA_CUR_DISPLAY} = ${GRAFANA_SELECTED} ]; then
+    echo "Updating Grafana version from ${GRAFANA_CUR_DISPLAY} to ${GRAFANA_SELECTED} in '${POWERWALL_YML_FILE}'."
+    sed -i "s/grafana\/grafana:.\+-ubuntu$/grafana\/grafana:${GRAFANA_SELECTED}/" "${POWERWALL_YML_FILE}"
+    echo "Refer to READ.ME for compatibility tips with Grafana ${GRAFANA_SELECTED}."
+    GRAFANA_CUR=${GRAFANA_SELECTED}
 fi
 
 cat << EOF
@@ -229,10 +252,10 @@ cat << EOF
 
 ------------------[ Final Setup Instructions ]-----------------
 
-1) Run ./setup.sh in Dashboard home folder
+1) Run ./setup.sh in the Powerwall-Dashboard home directory
 2) Reboot computer
 3) Open Grafana at http://localhost:9000/ ... use admin/admin for login or Grafana credentials you created.
-4) From 'Dashboard\Browse', select 'New/Import', browse to ${PWD} and upload ${DASHBOARD_ENPHASE}.
+4) For basic time-series panel, from 'Dashboard/Browse/New/Import' browse to ${PWD} & upload ${DASHBOARD_ENPHASE}.
 
 EOF
 
