@@ -1,34 +1,48 @@
 #!/usr/bin/env python
-# enphase-canvas.py - Tesla Fleet API access
+# enphase-canvas.py
 # -*- coding: utf-8 -*-
 
 """
-Python scrypt to interactively create a Grafana dashboard with canvas panels
+Python script to interactively create a Grafana dashboard with canvas panels
 graphically depicting a Solar array with Enphase micro-inverters.
-
-Rev History:
-0.1.0: Initial
 
 Needed to run:  no additional python packages should be required beyond the standard package.
 """
 
+import copy
 import json
 import os
+import shutil
 import signal
 import sys
-import shutil  # for screen resolution command invocation
 
 # Constants
-BUILD = "0.1.0"
-MAX_WIDTH = 15
-MAX_HEIGHT = 15
+BUILD = "0.5.0"
+DEBUG = False
+MAX_WIDTH = 30
+MAX_HEIGHT = 30
+MAX_INVERTERS = 99
+MIN_GRAFANA = "10.4.1"
 MIN_PYTHON = (3, 5)
-BORDER_COLORS = ["#8ab8ff", "#ff780a", "#f2495c", "#5794f2", "#b877d9", "#705da0", "#37872d", "#fade2a",
-                 "#447ebc", "#c15c17", "#890f02", "#0a437c", "#6d1f62", "#584477", "#b7dbab", "#f4d598",
-                 "#70dbed", "#f9ba8f", "#f29191", "#82b5d8", "#e5a8e2", "#aea2e0", "#629e51", "#e5ac0e",
-                 "#64b0c8", "#e0752d", "#bf1b00"]
+BORDER_COLORS = ["#8AB8FF", "#FF780A", "#F2495C", "#5794F2", "#B877D9", "#705DA0", "#37872D", "#FADE2A",
+                 "#447EBC", "#C15C17", "#890F02", "#0A437C", "#6D1F62", "#584477", "#B7DBAB", "#F4D598",
+                 "#70DBED", "#F9BA8F", "#F29191", "#82B5D8", "#E5A8E2", "#AEA2E0", "#629E51", "#E5AC0E",
+                 "#64B0C8", "#E0752D", "#BF1B00", "#634836", "#D8FF8A", "#53261F", "#A1FF8A", "#CAC5A2",
+                 "#386371", "#74124E", "#707ED5", "#79FAC4", "#5771F2", "#7C6E13", "#629E51", "#F21191",
+                 "#788AFA", "#2F6750", "#9D8B1B", "#354B57", "#81405B", "#FAFF8A", "#5B435A", "#FA78AE",
+                 "#651C25", "#FF0000"]
+TEMPERATURE_COLORS = ["#323232", "#3C3C3C", "#464646", "#505050", "#5A5A5A", "#0000FF", "#0019FF", "#0032FF",
+                      "#004BFF", "#0064FF", "#007DFF", "#0096FF", "#00AFFF", "#00C8FF", "#00E1FF", "#00F0FF",
+                      "#00FFE1", "#00FFC8", "#00FFAF", "#00FF96", "#00FF7D", "#00FF64", "#00FF4B", "#00FF32",
+                      "#00FF19", "#00FF00", "#19FF00", "#32FF00", "#4BFF00", "#64FF00", "#7dFF00", "#96FF00",
+                      "#AFFF00", "#C8FF00", "#E1FF00", "#F0FF00", "#FFFF00", "#FFF000", "#FFE100", "#FFC800",
+                      "#FFAF00", "#FF9600", "#FF7D00", "#FF6400", "#FF4B00", "#FF3200", "#FF1900", "#FF0000"]
+
 refIdList = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
              'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+UID_CurOut = "x0x0SolarPanelCurOutputTemplate"
+UID_TtlProd = "YoYoTotalProdPeriod"
+UID_Time_Series = "ZoZoTimeSeries"
 
 # Global variables
 p_array = []        # main deta for array creation
@@ -36,28 +50,6 @@ p_array = []        # main deta for array creation
                         # {'R': x, 'C': y, 'Custom': <True/False>}
                     # elements [1] - [x] are each serial number, with array coordinates:
                         # {"SN": "<serial#>)", "R": x, "C": y, "Panel": <panel#>, "Color": "<color code>>"}
-
-# ############################################################################
-# add_json() appends 'element' to file 'file_handle' in json format. 'offset'
-# is # of spaces to prepend lines with.  'add_comma' will suffix a comma.
-# ############################################################################
-def add_json(file_handle, element: dict, offset: int, add_comma: bool):
-    output = json.dumps(element, indent=2)
-    output = output[output.find('\n'):output.rfind('\n')]   # Lob off opening/closing brackets
-    output = output[1:]                                     # Lob off next blank line & leading spaces
-    output = ' ' * (offset+2) + (' ' * offset).join((output.lstrip()).splitlines(True))
-    if add_comma:
-        output += ','
-    file_handle.write(output)
-
-def add_template(template_name: str, FinalFileHandle):
-    try:
-        TemplateFile = open('./templates/' + template_name, 'r')
-    except:
-        sys.exit(f"Fatal error: template '{template_name}' not found under {os.getcwd()}.")
-    FinalFileHandle.write(TemplateFile.read())
-    TemplateFile.close()
-    return
 
 
 # ############################################################################
@@ -149,7 +141,6 @@ def get_panel_data(loc: dict, p_no: int, editing: bool) -> int:
             else:
                 break              # Custom panel number is in range & unique
 
-
     # Have valid serial number & panel number, update
     if sn != 0:
         found = False
@@ -176,7 +167,6 @@ def get_panel_data(loc: dict, p_no: int, editing: bool) -> int:
 def get_rc(prompt: str, vert: str, horiz: str, limit: dict) -> dict:
     rc_ok = False
     rc = {}
-    print('')
     while not rc_ok:
         rc = {'R': 0, 'C': 0, 'Custom': False}
         while rc['R'] <= 0:
@@ -228,7 +218,7 @@ def initialize_array():
         p_array[i].update({'R': 0, 'C': 0, 'Panel': 0, 'Color': 0})
 
     while True:
-        p_array[0] = get_rc("of array in panels, including gaps", "HEIGHT (R)", "WIDTH (C)", {'C': 15, 'R': 15})
+        p_array[0] = get_rc("of array in panels, including gaps", "HEIGHT (R)", "WIDTH (C)", {'C':MAX_WIDTH, 'R': MAX_HEIGHT})
         show_array(p_array, False, screen_width)
         if input("Look OK? (Y/N): ").upper() == "Y":
             break
@@ -266,19 +256,23 @@ def renumber_panels() -> int:
     return p_no - 1
 
 
-def save_session(array):
+def save_session(array, default_name: str):
     if input("Save this session for use at next run? (Y/N): ").upper() == "Y":
-        try:
-            file = open('array.save', 'r')
-            file.close()
-            if input(f"\tSaved array data exists.  Overwrite it? (Y or N): ").upper() != "Y":
-                sys.exit(0)
-        except:              # no file - we're good
-            pass
-
-        file = open('array.save', 'w')
+        while True:
+            save_file = input(f"Enter filename to save to (hit ENTER for '{default_name}'): ")
+            if not len(save_file):
+                save_file = default_name
+            if save_file.find('/') >= 0:
+                print("Subdirectories not supported.")
+                continue
+            save_file += ".save"
+            if os.path.isfile(save_file) and input(f"\t{save_file} exists.  Overwrite it? (Y or N): ").upper() != "Y":
+                continue
+            break
+        file = open(save_file, 'w')
         json.dump(array, file)
         file.close()
+        print(f"Array data saved to {save_file}.")
     return
 
 
@@ -313,7 +307,7 @@ def show_array(array_to_show: list, show_sn: bool, screen_width: int):
         line2 = "|"
         line3 = "|"
         for c in range(1, p_array[0]['C'] + 1):
-            line1 += f"{'-' * PadRCL}R{r:02d}C{c:02d}{'-' * (PadRCR)}-"
+            line1 += f"{'-' * PadRCL}R{r:02d}C{c:02d}{'-' * PadRCR}-"
             if show_sn:
                 found = False
                 for i in range(1, len(array_to_show)):
@@ -327,7 +321,7 @@ def show_array(array_to_show: list, show_sn: bool, screen_width: int):
                     line3 += f"{' ' * box_width}|"
             else:
                 line2 += f"{' ' * PadL}{panel_text}{default_panel_no:03d}{' ' * PadR}|"
-                line3 += f"{' ' * (box_width)}|"
+                line3 += f"{' ' * box_width}|"
                 default_panel_no += 1
         print(line1)
         print(line2)
@@ -336,10 +330,9 @@ def show_array(array_to_show: list, show_sn: bool, screen_width: int):
 
 
 # ############################################################################
-# Signal_Handler exits if SIGTERM or SIGINT are received.
+# signal_handler exits if SIGTERM or SIGINT are received.
 # ############################################################################
-def Signal_Handler(sig, frame):
-    global StopNow
+def signal_handler(sig, frame):
     sys.exit("\n\nInterrupt received.")
 
 
@@ -347,13 +340,13 @@ def Signal_Handler(sig, frame):
 # Main Program
 # ############################################################################
 if __name__ == "__main__":
-    p_array = [{'R':0, 'C':0, 'Custom':False}]      # initialize p_array with basic array info dictionary
+    p_array = [{'R': 0, 'C': 0, 'Custom': False}]      # initialize p_array with basic array info dictionary
 
     if sys.version_info < MIN_PYTHON:
         sys.exit(f"Using Python {sys.version}, Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} or later is required.\n")
 
-    signal.signal(signal.SIGINT, Signal_Handler)  # To catch Ctrl-C
-    signal.signal(signal.SIGTERM, Signal_Handler)  # To catch Term (e.g., Docker)
+    signal.signal(signal.SIGINT, signal_handler)  # To catch Ctrl-C
+    signal.signal(signal.SIGTERM, signal_handler)  # To catch Term (e.g., Docker)
 
     screen_width = int(shutil.get_terminal_size()[0])
 
@@ -389,29 +382,44 @@ if __name__ == "__main__":
     for i in range(len(tmp.splitlines())):
         if sn_java[i].find("serialNumber") > 0:
             p_array.append({'SN': sn_java[i][21:33], 'R': 0, 'C': 0, 'Panel': 0, 'Color': 0})
+    if len(p_array) - 1 > MAX_INVERTERS:
+        sys.exit(
+            f"Sorry, up to {MAX_INVERTERS} inverters is supported, {len(p_array) - 1} were found in your network.")
 
     print(
         f"\n\n**************** enphase-canvas.py Build {BUILD} ****************\n"
         f"This program will create a Grafana Dashboard with Canvas Panels that will display the output of your\n"
         f"Enphase inverters graphically to resemble your installation. "
         f"{len(p_array) - 1} inverters were found on your network.\n"
-        f"First, indicate the width and height of your array in panels.  If you want gaps to appear in the grafic\n"
+        f"First, indicate the width and height of your array in panels.  If you want gaps to appear in the graphic\n"
         f"count them as panels.  Example, if your array has 5 across, then a gap of one, then 3 more, the width is 9.")
 
-    # is there a saved array from an earlier run?
-    try:
-        file = open('array.save', 'r')
-        saved_session = True
-    except:
-        saved_session = False
-    if saved_session:
-        if input("\nSaved session found, restore? (y/N) ").upper() != 'Y':
-            saved_session = False
-        else:
+    # Are there saved arrays?
+    saved_arrays = []
+    default_array_name = ""
+    for file in os.listdir('.'):
+        if file.endswith(".save"):
+            saved_arrays.append(os.path.basename(file))
+    if len(saved_arrays):
+        print("\nThe following saved arrays are available:")
+        for i in range(len(saved_arrays)):
+            print(f"{i+1}. {saved_arrays[i]}")
+        while True:
+            i = input(f"Enter array number to load (1 to {len(saved_arrays) - 1}), or ENTER to start a new one: ")
+            if i == "":
+                print("Starting a new array.")
+                default_array_name = "enphase"
+                initialize_array()
+                break
+            if not str.isnumeric(i) or int(i) <= 0 or int(i) > len(saved_arrays):
+                continue
+            default_array_name = os.path.splitext(saved_arrays[int(i)-1])[0]
+            print(f"Loading array '{default_array_name}.save'")
+            file = open(default_array_name + '.save', 'r')
             p_array_temp = json.load(file)
             file.close()
             p_array[0] = p_array_temp[0]                 # Load basic info
-            # Now each panel, checking that it's serisl number exits in current configuration
+            # Now each panel, checking that it's serial number exits in current configuration
             for i in range(1, len(p_array_temp)):
                 err_msg =\
                     f"SN {p_array_temp[i]['SN']} in saved data is not in current array.  Cannot use saved data."
@@ -420,11 +428,12 @@ if __name__ == "__main__":
                         p_array[j] = p_array_temp[i]
                         err_msg = ""
                         break
-                if(err_msg != ""):
+                if err_msg != "":
                     sys.exit(err_msg)
             print("Loaded saved data.")
-            saved_session = True
-    if not saved_session:
+            break
+    else:
+        print("No saved arrays found")
         initialize_array()
 
     response = ''
@@ -452,7 +461,7 @@ if __name__ == "__main__":
         elif response == 'C':
             initialize_array()
         elif response == 'Q':
-            save_session(p_array)
+            save_session(p_array, default_array_name)
             sys.exit(0)
         elif response == 'A':
             # Check for unused serial number, warn if any found
@@ -480,10 +489,14 @@ if __name__ == "__main__":
 
     # JSON creation
     while True:
-        out_file_name = input("Enter name for dashboard json file (hit ENTER for 'enphase'): ")
+        if DEBUG:
+            out_file_name = 'debug.json'
+            break
+        out_file_name = input(f"Enter name for dashboard json file (hit ENTER for '{default_array_name}'): ")
         if out_file_name == '':
-            out_file_name = 'enphase.json'
+            out_file_name = default_array_name + '.json'
         else:
+            default_array_name = out_file_name
             out_file_name = out_file_name + '.json'
         try:
             FinalFile = open(out_file_name, 'r')
@@ -494,144 +507,88 @@ if __name__ == "__main__":
         continue
     FinalFile = open(out_file_name, 'w')
 
+    if input("Save dashboard panels to Grafana's library for use in other dashboards (Y or N): ").upper() == "Y":
+        library = True
+        print("    Panels will be added to Grafana Library when you import dashboard.")
+        Influx = "DS_INFLUXDB-FOR-LIBRARY-PANEL"
+        SunAndMoon = "DS_SUN_AND_MOON-FOR-LIBRARY-PANEL"
+    else:
+        library = False
+        print("    Panels will NOT be added to Grafana Library when you import dashboard.")
+        Influx = "DS_INFLUXDB"
+        SunAndMoon = "DS_SUN_AND_MOON"
+
+    UID_Influx = '${' + Influx + '}'
+    UID_SunAndMoon = '${' + SunAndMoon + '}'
+
     # Build jsons
-    element_json = []  # All Canvas element definitions - both Canvas Panels (Identical)
-    current_query_json = []  # Current Output queries
-    production_query_json = []  # Production queries
-    xf_json = []  # Transformations (same for both Canvas panels)
-    time_series_json = []  # Custom color overrides for time series panel
-    time_series_aliases_json = []  # Shortened names for Time Series Legend
+    # Building Block JSONS:
+    elements_common = []        # Common part of canvas options section List - header & element definitions
+    cur_query = []              # Queries for Current Output panel List
+    prod_query = []             # Queries for Production panel List
+    transforms = []             # Transformations List (same for both Canvas panels)
+    time_series_overrides = []  # Overrides List, including custom colors, for Time Series Panel
+    time_series_targets = []    # Includes shortened names for Time Series Legend
+    CurOut_gridPos = {}         # Current Output Panel Position, etc. Dictionary
+    TtlProd_gridPos = {}        # Total Production Panel Position, etc. Dictionary
+    TimeSeries_gridPos = {}     # Time Series Panel Position, etc. Dictionary
+    Input_influx = {}
+    Input_SunAndMoon = {}
 
-    # Since overrides for time series are one list, add in top part now, append others in loop
-    time_series_json.append(
-        {
-            "matcher": {
-                "id": "byName",
-                "options": "Clouds"
-            },
-            "properties": [
-                {
-                    "id": "color",
-                    "value": {
-                        "fixedColor": "#ffffff",
-                        "mode": "fixed"
-                    }
-                },
-                {
-                    "id": "custom.fillOpacity",
-                    "value": 0
-                },
-                {
-                    "id": "unit",
-                    "value": "percent"
-                },
-                {
-                    "id": "custom.lineStyle",
-                    "value": {
-                        "dash": [
-                            5,
-                            6
-                        ],
-                        "fill": "dash"
-                    }
-                },
-                {
-                    "id": "custom.pointSize",
-                    "value": 1
-                },
-                {
-                    "id": "custom.lineWidth",
-                    "value": 1
-                },
-                {
-                    "id": "custom.spanNulls",
-                    "value": True
-                },
-                {
-                    "id": "custom.axisPlacement",
-                    "value": "left"
-                },
-                {
-                    "id": "custom.axisLabel",
-                    "value": ""
-                },
-                {
-                    "id": "custom.hideFrom",
-                    "value": {
-                        "legend": False,
-                        "tooltip": False,
-                        "viz": False
-                    }
-                }
-            ]
-        })
-    time_series_json.append(
-        {
-            "matcher": {
-                "id": "byName",
-                "options": "Sun altitude"
-            },
-            "properties": [
-                {
-                    "id": "custom.fillOpacity",
-                    "value": 10
-                },
-                {
-                    "id": "custom.axisPlacement",
-                    "value": "hidden"
-                },
-                {
-                    "id": "unit",
-                    "value": "percent"
-                },
-                {
-                    "id": "decimals",
-                    "value": 0
-                },
-                {
-                    "id": "color",
-                    "value": {
-                        "fixedColor": "#c0c0c0",
-                        "mode": "fixed"
-                    }
-                },
-                {
-                    "id": "custom.lineStyle",
-                    "value": {
-                        "dash": [
-                            1,
-                            5
-                        ],
-                        "fill": "dash"
-                    }
-                },
-                {
-                    "id": "min",
-                    "value": -101
-                },
-                {
-                    "id": "max",
-                    "value": 101
-                },
-                {
-                    "id": "unit",
-                    "value": "degree"
-                },
-                {
-                    "id": "displayName",
-                    "value": "Sun Altitude"
-                },
-                {
-                    "id": "custom.hideFrom",
-                    "value": {
-                        "legend": True,
-                        "tooltip": False,
-                        "viz": False
-                    }
-                }
-            ]
-        })
+    # Panel definition dictionaries
+    CurOut_panel = {}
+    TtlProd_panel = {}
+    TimeSeries_panel = {}
 
+    final_json = {}         # Final JSON file dictionary
+
+    # Make common part for canvas element's definitions, both panels' queries and transformations JSONs,
+    # as well as base for time series panel
+
+    # First, pre-pend time-series overides with fixed stuff
+    time_series_overrides.append({"matcher": {"id": "byName", "options": "Clouds"},
+                                  "properties": [{"id": "color", "value": {"fixedColor": "#ffffff", "mode": "fixed"}},
+                                                 {"id": "custom.fillOpacity", "value": 0},
+                                                 {"id": "unit", "value": "percent"},
+                                                 {"id": "custom.lineStyle", "value": {"dash": [5, 6], "fill": "dash"}},
+                                                 {"id": "custom.pointSize", "value": 1},
+                                                 {"id": "custom.lineWidth", "value": 1},
+                                                 {"id": "custom.spanNulls", "value": True},
+                                                 {"id": "custom.axisPlacement", "value": "left"},
+                                                 {"id": "custom.axisLabel", "value": ""},
+                                                 {"id": "custom.hideFrom",
+                                                  "value": {"legend": False, "tooltip": False, "viz": False}}]})
+
+    time_series_overrides.append({"matcher": {"id": "byName", "options": "Sun altitude"},
+                                  "properties": [{"id": "custom.fillOpacity", "value": 10},
+                                                 {"id": "custom.axisPlacement", "value": "hidden"},
+                                                 {"id": "unit", "value": "percent"},
+                                                 {"id": "decimals", "value": 0},
+                                                 {"id": "color", "value": {"fixedColor": "#c0c0c0", "mode": "fixed"}},
+                                                 {"id": "custom.lineStyle", "value": {"dash": [1, 5], "fill": "dash"}},
+                                                 {"id": "min", "value": -101},
+                                                 {"id": "max", "value": 101},
+                                                 {"id": "unit", "value": "degree"},
+                                                 {"id": "displayName", "value": "Sun Altitude"},
+                                                 {"id": "custom.hideFrom", "value":
+                                                     {"legend": True, "tooltip": False, "viz": False}}]})
+
+    # Prepend time series targets with fixed stuff
+    time_series_targets.append({"datasource": {"type": "fetzerch-sunandmoon-datasource", "uid": UID_SunAndMoon},
+                                "hide": False, "refId": "A",
+                                "target": ["sun_altitude"]})
+    time_series_targets.append({"alias": "Clouds",
+                                "datasource": {"type": "influxdb", "uid": UID_Influx},
+                                "groupBy": [{"params": ["$__interval"], "type": "time"},
+                                            {"params": ["null"], "type": "fill"}],
+                                "hide": False,
+                                "measurement": "weather", "orderByTime": "ASC", "policy": "autogen", "refId": "B",
+                                "resultFormat": "time_series",
+                                "select": [[{"params": ["clouds"], "type": "field"},
+                                            {"params": [], "type": "mean"}]],
+                                "tags": []})
+
+    # Now loop through all panels and add appropriate data to JSONs
     for i in range(1, len(p_array) + 1):
         found = False
         for j in range(1, len(p_array)):
@@ -640,238 +597,363 @@ if __name__ == "__main__":
                 c = p_array[j]['C']
                 found = True
                 break
-        if not found:  # Non-existant panel
+        if not found:  # Non-existent panel
             continue
         else:  # Do all json here
             panel_text = f"{p_array[j]['Panel']:02d}"
-            element_json.append({
-                "background": {
-                    "color": {
-                        "field": panel_text,
-                        "fixed": "#D9D9D9"
-                    },
-                    "image": {
-                        "fixed": ""
-                    }
-                },
-                "border": {
-                    "color": {
-                        "fixed": f"{p_array[j]['Color']}",
-                    },
-                    "width": 5
-                },
-                "config": {
-                    "align": "right",
-                    "color": {
-                        "field": f"{panel_text}Color",
-                        "fixed": "#000000"
-                    },
-                    "text": {
-                        "fixed": panel_text
-                    },
-                    "valign": "bottom"
-                },
-                "constraint": {
-                    "horizontal": "left",
-                    "vertical": "top"
-                },
-                "name": f"Panel{panel_text}",
-                "placement": {
-                    "height": 45,
-                    "left": 5 + (79 * (c - 1)),
-                    "top": 32 + (48 * (r - 1)),
-                    "width": 76
-                },
-                "type": "rectangle"
-            })
-            element_json.append({
-                "background": {
-                    "color": {
-                        "fixed": "transparent"
-                    }
-                },
-                "border": {
-                    "color": {
-                        "fixed": "dark-green"
-                    }
-                },
-                "config": {
-                    "align": "left",
-                    "color": {
-                        "field": f"{panel_text}Color",
-                        "fixed": "#000000"
-                    },
-                    "text": {
-                        "field": panel_text,
-                        "mode": "field"
-                    },
-                    "valign": "middle"
-                },
-                "constraint": {
-                    "horizontal": "left",
-                    "vertical": "top"
-                },
-                "name": f"Panel{panel_text}Watts",
-                "placement": {
-                    "height": 20,
-                    "left": 11 + (79 * (c - 1)),
-                    "top": 34 + (48 * (r - 1)),
-                    "width": 68
-                },
-                "type": "rectangle"
-            })
-            current_query_json.append({
-                "alias": panel_text,
-                "datasource": {
-                    "type": "influxdb",
-                    "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
-                },
-                "hide": False,
-                "query": f"SELECT last(\"lastReportWatts\") FROM \"local\".\"LocalData_Enphase\" WHERE (\"serialNumber\" = '{p_array[j]['SN']}')",
-                "rawQuery": True,
-                "refId": f"{get_ref_id(p_array[j]['Panel'], 0)}",
-                "resultFormat": "time_series"
-            })
-            xf_json.append({
-                "id": "calculateField",
-                "options": {
-                    "alias": f"{panel_text}Color",
-                    "mode": "reduceRow",
-                    "reduce": {
-                        "include": [
-                            panel_text
-                        ],
-                        "reducer": "lastNotNull"
-                    }
-                }
-            })
+            elements_common.append({"background": {
+                                        "color": {"field": panel_text, "fixed": "#D9D9D9"}, "image": {"fixed": ""}},
+                                    "border": {"color": {"fixed": f"{p_array[j]['Color']}"}, "width": 5},
+                                    "config": {"align": "right",
+                                               "color": {"field": f"{panel_text}Color", "fixed": "#000000"},
+                                               "text": {"fixed": panel_text},
+                                               "valign": "bottom"},
+                                    "constraint": {"horizontal": "left", "vertical": "top"},
+                                    "name": f"Panel{panel_text}",
+                                    "placement":
+                                        {"height": 45, "left": 5 + (79 * (c - 1)),
+                                         "top": 32 + (48 * (r - 1)), "width": 76},
+                                    "type": "rectangle"})
+            elements_common.append({"background": {"color": {"fixed": "transparent"}},
+                                    "border": {"color": {"fixed": "dark-green"}},
+                                    "config": {
+                                        "align": "left", "color": {"field": f"{panel_text}Color", "fixed": "#000000"},
+                                        "text": {"field": panel_text, "mode": "field"},
+                                        "valign": "middle"},
+                                    "constraint": {"horizontal": "left", "vertical": "top"},
+                                    "name": f"Panel{panel_text}Watts",
+                                    "placement":
+                                        {"height": 20, "left": 11 + (79 * (c - 1)),
+                                         "top": 34 + (48 * (r - 1)), "width": 68},
+                                    "type": "rectangle"})
+            cur_query.append({"alias": panel_text,
+                              "datasource": {"type": "influxdb", "uid": UID_Influx},
+                              "hide": False,
+                              "query":
+                                  f"SELECT last(\"lastReportWatts\") FROM \"local\".\"LocalData_Enphase\" WHERE (\"serialNumber\" = '{p_array[j]['SN']}')",
+                              "rawQuery": True,
+                              "refId": f"{get_ref_id(p_array[j]['Panel'], 0)}",
+                              "resultFormat": "time_series"})
+            transforms.append({"id": "calculateField",
+                               "options": {"alias": f"{panel_text}Color", "mode": "reduceRow",
+                                           "reduce": {"include": [panel_text], "reducer": "lastNotNull"}}})
 
-            production_query_json.append({
-                "alias": panel_text,
-                "datasource": {
-                    "type": "influxdb",
-                    "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
-                },
-                "hide": False,
-                "query": f"SELECT integral(\"lastReportWatts\")  / 3600 FROM \"local\".\"LocalData_Enphase\" WHERE (\"serialNumber\" = '{p_array[j]['SN']}') AND $timeFilter",
-                "rawQuery": True,
-                "refId": f"{get_ref_id(p_array[j]['Panel'], 0)}",
-                "resultFormat": "time_series"
-            })
-            time_series_json.append({
-                "matcher": {
-                    "id": "byName",
-                    "options": panel_text
-                },
-                "properties": [
-                    {
-                        "id": "color",
-                        "value": {
-                            "fixedColor": f"{p_array[j]['Color']}",
-                            "mode": "fixed"
-                        }
-                    }
-                ]
-            })
-            time_series_aliases_json.append({
-                "alias": panel_text,
-                "datasource": {
-                    "type": "influxdb",
-                    "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
-                },
-                "groupBy": [
-                    {
-                        "params": [
-                            "$__interval"
-                        ],
-                        "type": "time"
-                    },
-                    {
-                        "params": [
-                            "serialNumber"
-                        ],
-                        "type": "tag"
-                    }
-                ],
-                "hide": False,
-                "measurement": "LocalData_Enphase",
-                "orderByTime": "ASC",
-                "policy": "local",
-                "refId": f"{get_ref_id(p_array[j]['Panel'], 2)}",
-                "resultFormat": "time_series",
-                "select": [
-                    [
-                        {
-                            "params": [
-                                "lastReportWatts"
-                            ],
-                            "type": "field"
-                        },
-                        {
-                            "params": [],
-                            "type": "distinct"
-                        }
-                    ]
-                ],
-                "tags": [
-                    {
-                        "key": "serialNumber",
-                        "operator": "=",
-                        "value": p_array[j]['SN']
-                    }
-                ]
-            })
+            prod_query.append({"alias": panel_text, "datasource": {
+                "type": "influxdb", "uid": UID_Influx}, "hide": False,
+                               "query": f"SELECT integral(\"lastReportWatts\")  / 3600 FROM \"local\".\"LocalData_Enphase\" WHERE (\"serialNumber\" = '{p_array[j]['SN']}') AND $timeFilter",
+                               "rawQuery": True,
+                               "refId": f"{get_ref_id(p_array[j]['Panel'], 0)}",
+                               "resultFormat": "time_series"})
+            time_series_overrides.append({"matcher": {"id": "byName", "options": panel_text},
+                                          "properties": [{"id": "color",
+                                                          "value":
+                                                              {"fixedColor": f"{p_array[j]['Color']}",
+                                                               "mode": "fixed"}}]})
+            time_series_targets.append({"alias": panel_text,
+                                        "datasource": {"type": "influxdb", "uid": UID_Influx},
+                                        "groupBy": [{"params": ["$__interval"], "type": "time"},
+                                                    {"params": ["serialNumber"], "type": "tag"}],
+                                        "hide": False,
+                                        "measurement": "LocalData_Enphase",
+                                        "orderByTime": "ASC",
+                                        "policy": "local",
+                                        "refId": f"{get_ref_id(p_array[j]['Panel'], 2)}",
+                                        "resultFormat": "time_series",
+                                        "select": [[{"params": ["lastReportWatts"], "type": "field"},
+                                                    {"params": [], "type": "distinct"}]],
+                                        "tags": [{"key": "serialNumber", "operator": "=", "value": p_array[j]['SN']}]})
 
-    current_query_json.append({
-        "alias": "Total",
-        "datasource": {
-            "type": "influxdb",
-            "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
-        },
-        "hide": False,
-        "query": "SELECT sum(last) from (SELECT last(\"lastReportWatts\") FROM \"local\".\"LocalData_Enphase\" GROUP BY \"serialNumber\")",
-        "rawQuery": True,
+    # Final 1-time items
+    cur_query.append({"alias": "Total",
+                      "datasource": {"type": "influxdb", "uid": UID_Influx},
+                      "hide": False,
+                      "query":
+                          "SELECT sum(last) from (SELECT last(\"lastReportWatts\") FROM \"local\".\"LocalData_Enphase\" GROUP BY \"serialNumber\")",
+                      "rawQuery": True,
+                      "refId": f"{get_ref_id(len(p_array), 0)}",
+                      "resultFormat": "time_series"})
+    prod_query.append({"alias": "Total",
+                       "datasource": {"type": "influxdb", "uid": UID_Influx},
+                       "hide": False,
+                       "query":
+                           "SELECT sum(integral) from (SELECT integral(\"lastReportWatts\")  / 3600 FROM \"local\".\"LocalData_Enphase\" WHERE $timeFilter GROUP BY \"serialNumber\")",
+                       "rawQuery": True,
+                       "refId": f"{get_ref_id(len(p_array), 0)}",
+                       "resultFormat": "time_series"})
 
-        "refId": f"{get_ref_id(len(p_array), 0)}",
-        "resultFormat": "time_series"
-    })
-    production_query_json.append({
-        "alias": "Total",
-        "datasource": {
-            "type": "influxdb",
-            "uid": "${DS_INFLUXDB-FOR-LIBRARY-PANEL}"
-        },
-        "hide": False,
-        "query": "SELECT sum(integral) from (SELECT integral(\"lastReportWatts\")  / 3600 FROM \"local\".\"LocalData_Enphase\" WHERE $timeFilter GROUP BY \"serialNumber\")",
-        "rawQuery": True,
-        "refId": f"{get_ref_id(len(p_array), 0)}",
-        "resultFormat": "time_series"
+    # Build dictionary with Panel Options common to both canvas panels
+    panel_options_common = {}
+    panel_options_common.update({"inlineEditing": False, "panZoom": True, "infinitePan": True,
+                                 "root": {"background": {"color": {"fixed": "transparent"},
+                                                         "image": {"field": "", "fixed": "", "mode": "fixed"}},
+                                          "border": {"color": {"fixed": "dark-green"}},
+                                          "constraint": {"horizontal": "left", "vertical": "top"}}})
 
-    })
+    # Build Current Output Panel
+    CurOut_gridPos.update({"gridPos": {"h": int(round(2.7 + p_array[0]['R']*1.32, 0)), "w": 24, "x": 0, "y": 1}})
+    cur_elements = copy.deepcopy(elements_common)  # Clone elements to suffix Current Output Panel specific stuff
+    cur_elements.append({"background": {"color": {"fixed": "transparent"}},
+                         "border": {"color": {"fixed": "dark-green"}},
+                         "config": {"align": "center", "color": {"fixed": "text"}, "size": 22,
+                                    "text": {"fixed": "Total Current Output:"}, "valign": "middle"},
+                         "constraint": {"horizontal": "left", "vertical": "top"},
+                         "name": "TotalOutputTitle",
+                         "placement": {"height": 30, "left": 5 + int(max(0, p_array[0]['C']-4)*39.5),
+                                       "top": 32+p_array[0]['R']*48, "width": 230},
+                         "type": "text"},)
 
-    # Make FinalFile:
-    add_template('Header1.template', FinalFile)
-    add_json(FinalFile, element_json, 12, True)
-    add_template('OutputTtlPanels.template', FinalFile)
-    add_json(FinalFile, current_query_json, 8, False)
-    FinalFile.write(
-        "\n        ],\n        \"title\": \"Solar Panels - Current Output Templete\",\n        \"transformations\": [\n")
-    add_json(FinalFile, xf_json, 8, False)  # Add in transformations for Current Output Canvas
-    add_template('Header2.template', FinalFile)# Add Header for Total Production Canvas
-    add_json(FinalFile, element_json, 12, True) # Add Production Canvas Element Elements (same as Current Output)
-    add_template('ProductionTtlPanels.template', FinalFile)
-    add_json(FinalFile, production_query_json, 8, False)
-    FinalFile.write(
-        "\n        ],\n        \"title\": \"Solar Panel Production Template Between ${__from:date:YYYY-MMM-DD HH:MM} and ${__to:date:YYYY-MMM-DD HH:MM}\",\n        \"transformations\": [\n")
-    add_json(FinalFile, xf_json, 8, False)  # Add Production Canvas transformations (same as Current Output)
-    add_template('TimeSeriesHeader.template', FinalFile)
-    add_json(FinalFile, time_series_json, 10, False)    # Add in color overrides for time series panel
-    add_template('TimeSeriesTrailer.template', FinalFile)
-    add_json(FinalFile, time_series_aliases_json, 8, False)     # Add in aliases for time series panel
-    add_template('Trailer.template', FinalFile)
+    cur_elements.append({"background": {"color": {"fixed": "transparent"}},
+                         "border": {"color": {"fixed": "dark-green"}},
+                         "config": {"align": "left", "color": {"fixed": "text"}, "size": 22,
+                                    "text": {"field": "Total", "fixed": "XXX", "mode": "field"},
+                                    "valign": "middle"},
+                         "constraint": {"horizontal": "left", "vertical": "top"},
+                         "name": "TotalOutput",
+                         "placement": {"height": 30, "left": 235 + int(max(0, p_array[0]['C']-4)*39.5),
+                                       "top": 32+p_array[0]['R']*48, "width": 100},
+                         "type": "rectangle"})
+
+    # Build Threshold colors for CurOut_panel
+    Threshold_steps = [{"color": "transparent", "value": None}]
+    i = 0
+    for step in [0, 2, 5, 7, 9, 10, 15, 20, 25, 30, 35]:
+        Threshold_steps.append({"color": TEMPERATURE_COLORS[i], "value": step})
+        i += 1
+    for step in range(40, 401, 10):
+        Threshold_steps.append({"color": TEMPERATURE_COLORS[i], "value": step})
+        i += 1
+
+    CurOut_panel.update({"datasource": {"type": "datasource", "uid": "-- Mixed --"},
+                         "description": "", "fieldConfig": {
+                            "defaults": {"color": {"mode": "thresholds"}, "fieldMinMax": True, "mappings": [],
+                                         "noValue": "0", "thresholds": {"mode": "absolute", "steps": Threshold_steps},
+                                         "unit": "watt"},
+                         "overrides": [{"matcher": {"id": "byRegexp", "options": "/[0-9][0-9]Color/"},
+                                        "properties": [{"id": "thresholds",
+                                                        "value": {"mode": "absolute", "steps": [
+                                                            {"color": "#ffffff", "value": None},
+                                                            {"color": "#000000", "value": 30}]}}]}]}})
+    if library:
+        CurOut_panel.update({"libraryPanel": {"uid": UID_CurOut}})
+    else:                       # If not saving panel to library, gridPos & ID go here
+        CurOut_panel.update(CurOut_gridPos)
+        CurOut_panel.update({"id": 150})
+
+    CurOut_panel["options"] = copy.deepcopy(panel_options_common)
+    CurOut_panel["options"]["root"]["elements"] = copy.deepcopy(cur_elements)
+    CurOut_panel["options"]["root"]["name"] = "Element 1703022472170"
+    CurOut_panel["options"]["root"]["placement"] = {"height": 100, "left": 0, "top": 0, "width": 100}
+    CurOut_panel["options"]["root"]["type"] = "frame"
+    CurOut_panel["options"]["showAdvancedTypes"] = True
+    CurOut_panel.update({"pluginVersion": MIN_GRAFANA})
+    CurOut_panel["targets"] = copy.deepcopy(cur_query)
+    CurOut_panel.update({"title": "Solar Panels - Current Output Template"})
+    CurOut_panel["transformations"] = transforms
+    CurOut_panel["type"] = "canvas"
+
+    # Build Total Production Panel
+    TtlProd_gridPos.update({"gridPos": {"h": int(round(2.7 + p_array[0]['R']*1.32, 0)), "w": 24, "x": 0,
+                                        "y": 1+int(round(2.7 + p_array[0]['R']*1.32, 0))}})
+    tp_elements = copy.deepcopy(elements_common)  # Clone elements to suffix Total Production Panel specific stuff
+    tp_elements.append({"background": {"color": {"fixed": "transparent"}},
+                        "border": {"color": {"fixed": "dark-green"}},
+                        "config": {"align": "right", "color": {"fixed": "text"}, "size": 22,
+                                   "text": {"fixed": "Total Production:"}, "valign": "middle"},
+                        "constraint": {"horizontal": "left", "vertical": "top"},
+                        "name": "TotalProdTitle",
+                        "placement": {"height": 30, "left": 5 + int(max(0, p_array[0]['C']-4)*39.5),
+                                      "top": 32+p_array[0]['R']*48, "width": 180},
+                        "type": "text"}, )
+
+    tp_elements.append({"background": {"color": {"fixed": "transparent"}},
+                        "border": {"color": {"fixed": "dark-green"}},
+                        "config": {"align": "left", "color": {"fixed": "text"}, "size": 22,
+                                   "text": {"field": "Total", "fixed": "XXX", "mode": "field"},
+                                   "valign": "middle"},
+                        "constraint": {"horizontal": "left", "vertical": "top"},
+                        "name": "TotalProd",
+                        "placement": {"height": 30, "left": 190 + int(max(0, p_array[0]['C']-4)*39.5),
+                                      "top": 32+p_array[0]['R']*48, "width": 140},
+                        "type": "rectangle"})
+
+    # Build Threshold colors for TtlProd_Panel
+    Threshold_steps = []
+    Threshold_steps.clear()
+    Threshold_steps.append({"color": "transparent", "value": None},)
+    i = 0
+    for step in range(0, 1975, 42):
+        Threshold_steps.append({"color": TEMPERATURE_COLORS[i], "value": step})
+        i += 1
+
+    TtlProd_panel.update({"datasource": {
+            "type": "datasource", "uid": "-- Mixed --"}, "description": "", "fieldConfig": {
+                "defaults": {"color": {"mode": "thresholds"}, "fieldMinMax": True, "mappings": [],
+                             "noValue": "0", "thresholds": {"mode": "absolute", "steps": Threshold_steps},
+                             "unit": "watth"},
+                "overrides": [{"matcher": {"id": "byRegexp", "options": "/[0-9][0-9]Color/"},
+                               "properties": [{"id": "thresholds",
+                                               "value": {"mode": "absolute", "steps": [
+                                                   {"color": "#ffffff", "value": None},
+                                                   {"color": "#000000", "value": 400}]}}]}]}})
+    if library:
+        TtlProd_panel.update({"libraryPanel": {"uid": UID_TtlProd}})
+    else:                           # If not saving panel to library, gridPos & ID go here
+        TtlProd_panel.update(TtlProd_gridPos)
+        TtlProd_panel.update({"id": 152})
+
+    TtlProd_panel["options"] = copy.deepcopy(panel_options_common)
+    TtlProd_panel["options"]["root"]["elements"] = {}
+    TtlProd_panel["options"]["root"]["elements"] = copy.deepcopy(tp_elements)
+    TtlProd_panel["options"]["root"]["name"] = "Element 1703022472170"
+    TtlProd_panel["options"]["root"]["placement"] = {"height": 100, "left": 0, "top": 0, "width": 100}
+    TtlProd_panel["options"]["root"]["type"] = "frame"
+    TtlProd_panel["options"]["showAdvancedTypes"] = True
+    TtlProd_panel.update({"pluginVersion": MIN_GRAFANA})
+    TtlProd_panel["targets"] = copy.deepcopy(prod_query)
+    TtlProd_panel.update({
+        "title": "Solar Panel Production Template Between ${__from:date:YYYY-MMM-DD HH:mm} and ${__to:date:YYYY-MMM-DD HH:mm}"})
+    TtlProd_panel["transformations"] = transforms
+    TtlProd_panel["type"] = "canvas"
+
+    # Build Inverter Output Time Series Panel
+    TimeSeries_gridPos.update(
+        {"gridPos": {"h": 9, "w": 24, "x": 0, "y": 1+int(round(2.7 + p_array[0]['R']*1.32, 0))*2}})
+    TimeSeries_panel.update({"datasource": {"type": "datasource", "uid": "-- Mixed --"},
+                             "description": "",
+                             "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"},
+                                                          "custom": {
+                                                              "axisBorderShow": False,
+                                                              "axisCenteredZero": False, "axisColorMode": "text",
+                                                              "axisLabel": "Watts", "axisPlacement": "right",
+                                                              "barAlignment": 0, "drawStyle": "line",
+                                                              "fillOpacity": 0, "gradientMode": "none",
+                                                              "hideFrom":
+                                                                  {"legend": False, "tooltip": False, "viz": False},
+                                                              "insertNulls": False,
+                                                              "lineInterpolation": "linear", "lineWidth": 1,
+                                                              "pointSize": 5,
+                                                              "scaleDistribution": {"type": "linear"},
+                                                              "showPoints": "auto", "spanNulls": False,
+                                                              "stacking": {"group": "A", "mode": "none"},
+                                                              "thresholdsStyle": {"mode": "off"}},
+                                                          "mappings": [],
+                                                          "thresholds": {"mode": "absolute",
+                                                                         "steps": [{"color": "green", "value": None},
+                                                                                   {"color": "red", "value": 80}]}}}})
+    TimeSeries_panel["fieldConfig"]["overrides"] = time_series_overrides
+    if library:
+        TimeSeries_panel.update({"libraryPanel": {"uid": UID_Time_Series}})
+    else:                                   # If not saving panel to library, gridPos & ID go here
+        TimeSeries_panel.update(TimeSeries_gridPos)
+        TimeSeries_panel.update({"id": 146})
+
+    TimeSeries_panel.update({"options": {
+        "legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": True},
+        "tooltip": {"maxHeight": 600, "mode": "single", "sort": "none"}}})
+    TimeSeries_panel["targets"] = time_series_targets
+    TimeSeries_panel["title"] = "Enphase Inverter Output Template"
+    TimeSeries_panel["type"] = "timeseries"
+
+    # Build Final JSON Sections
+    __inputs = []
+    Input_influx.update({"name": Influx, "label": "influxDB", "description": "",
+                         "type": "datasource", "pluginId": "influxdb", "pluginName": "InfluxDB"})
+    Input_SunAndMoon.update({"name": SunAndMoon, "label": "Sun and Moon", "description": "",
+                             "type": "datasource",
+                             "pluginId": "fetzerch-sunandmoon-datasource", "pluginName": "Sun and Moon"})
+    if library:             # Add in library panel usage
+        Input_influx.update({"usage": {"libraryPanels": [
+                             {"name": "Solar Panels - Current Output Template", "uid": UID_CurOut},
+                             {"name": "Solar Panels - Production Over Period Template", "uid": UID_TtlProd},
+                             {"name": "Enphase Inverter Output Template", "uid": UID_Time_Series}]}})
+        Input_SunAndMoon.update({"usage": {"libraryPanels": [
+                             {"name": "Enphase Inverter Output Template", "uid": UID_Time_Series}]}})
+    __inputs.append(Input_influx)
+    __inputs.append(Input_SunAndMoon)
+    __inputs.append({"name": "VAR_TZ", "type": "constant", "label": "Timezone",
+                     "value": "America/Chicago", "description": ""})
+
+    __elements = {}
+    if library:
+        __elements.update(
+            {UID_CurOut: {
+                "name": "Solar Panels - Current Output Template",
+                "uid": UID_CurOut, "kind": 1, "model": CurOut_panel},
+             UID_TtlProd: {
+                 "name": "Solar Panels - Production Over Period Template",
+                 "uid": UID_TtlProd, "kind": 1, "model": TtlProd_panel},
+             UID_Time_Series: {"name": "Enphase Inverter Output Template",
+                               "uid": UID_Time_Series, "kind": 1, "model": TimeSeries_panel}})
+
+    __requires = [{"type": "grafana", "id": "grafana", "name": "Grafana", "version": MIN_GRAFANA}]
+    if not library:
+        __requires.append({"type": "panel", "id": "canvas", "name": "Canvas", "version": ""})
+        __requires.append({"type": "datasource", "id": "fetzerch-sunandmoon-datasource",
+                           "name": "Sun and Moon", "version": "0.3.2"})
+        __requires.append({"type": "datasource", "id": "influxdb", "name": "InfluxDB", "version": "1.0.0"})
+        __requires.append({"type": "panel", "id": "timeseries", "name": "Time series", "version": ""})
+
+    panels = [{"collapsed": False, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+               "id": 98, "panels": [], "title": "Enphase", "type": "row"}]
+    if library:             # Add in library definitions to gridPos, add to panels
+        CurOut_gridPos.update({"id": 150})
+        CurOut_gridPos.update({"libraryPanel": {"uid": UID_CurOut,
+                                                "name": "Solar Panels - Current Output Template"}})
+        panels.append(CurOut_gridPos)
+
+        TtlProd_gridPos.update({"id": 152})
+        TtlProd_gridPos.update({"libraryPanel": {"uid": UID_TtlProd,
+                                                 "name": "Solar Panels - Production Over Period Template"}})
+        panels.append(TtlProd_gridPos)
+
+        TimeSeries_gridPos.update({"id": 146})
+        TimeSeries_gridPos.update({"libraryPanel": {"uid": UID_Time_Series,
+                                                    "name": "Enphase Inverter Output Template"}})
+        panels.append(TimeSeries_gridPos)
+    else:
+        panels.append(CurOut_panel)
+        panels.append(TtlProd_panel)
+        panels.append(TimeSeries_panel)
+
+    # Build full json
+    final_json["__inputs"] = __inputs
+    final_json["__elements"] = __elements
+    final_json["__requires"] = __requires
+    final_json.update({"annotations": {"list": [
+                        {"builtIn": 1, "datasource": {"type": "datasource", "uid": "grafana"},
+                         "enable": True, "hide": True, "iconColor": "rgba(0, 211, 255, 1)",
+                         "name": "Annotations & Alerts",
+                         "target": {"limit": 100, "matchAny": False, "tags": [], "type": "dashboard"},
+                         "type": "dashboard"}]}})
+    final_json.update({"description": ""})
+    final_json.update({"editable": False})
+    final_json.update({"fiscalYearStartMonth": 0})
+    final_json.update({"graphTooltip": 0})
+    final_json.update({"id": None})
+    final_json.update({"links": []})
+    final_json.update({"liveNow": False})
+    final_json["panels"] = panels
+    final_json.update({"refresh": "5s"})
+    final_json.update({"schemaVersion": 39})
+    final_json.update({"tags": []})
+    final_json.update({"templating": {"list": [
+        {"description": "Timezone", "hide": 2, "label": "Timezone", "name": "tz",
+         "query": "${VAR_TZ}", "skipUrlSync": False, "type": "constant",
+         "current": {"value": "${VAR_TZ}", "text": "${VAR_TZ}", "selected": False},
+         "options": [{"value": "${VAR_TZ}", "text": "${VAR_TZ}", "selected": False}]}]}})
+    final_json.update({"time": {"from": "now-24h", "to": "now"}})
+    final_json.update({"timeRangeUpdatedDuringEditOrView": False, "timepicker": {
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]}})
+    final_json.update({"timezone": "America/Chicago"})
+    final_json.update({"title": "Enphase Panels Template"})
+    final_json.update({"uid": "bdquc1pkin2tcb"})
+    final_json.update({"version": 1})
+    final_json.update({"weekStart": ""})
+    json.dump(final_json, FinalFile, indent=2)
     FinalFile.close()
 
     print(f"\nDashboard JSON file '{out_file_name}' created. Go to Grafana, Dashboards, New, Import & open this file.\n"
           f"If you have not run Powerwall-Dashboard's ./setup.sh since running setup-enphase.sh, be sure to, followed by reboot!\n")
-    save_session(p_array)
+    if not DEBUG:
+        save_session(p_array, default_array_name)
 sys.exit(0)
