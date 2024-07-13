@@ -1,7 +1,7 @@
 # enphase-dashboard #
 Powerwall-Dashboard add-on for Enphase microinverter support
 
-This project will supplement The Powerwall-Dashboard project by @jasoncox with support to gather production data from Enphase microinverters. With it, graphic details of a solar installation show individual output from each solar panel.
+This project will supplement The [Powerwall-Dashboard](https://github.com/jasonacox/Powerwall-Dashboard) project by [@jasoncox](https://github.com/jasonacox) with support to gather production data from Enphase microinverters. With it, graphic details of a solar installation show individual output from each solar panel.
 
 ![Screenshot from 2024-05-20 11-40-29](https://github.com/SCHibbard/enphase-dashboard/assets/40345296/48342833-77af-4bcb-94aa-757c7dcfc878)
 
@@ -21,17 +21,14 @@ cd ~/Powerwall-Dashboard
 git clone https://github.com/SCHibbard/enphase-dashboard.git
 ```
 
-## Updating ##
-To install a newer version, rename the folder with the older version & clone the new version in the Powerwall-Dashboard directory.  After, move in your environment variables and any dashboards you've created, except the default ones. Example:
+## Upgrading ##
+To check what the newest version available is, and optionally upgrade to it, run ```./upgrade-enphase.sh```. This script was added in V0.6.0. If your version is earlier than V0.6.0, this file will need to be manually downloaded. E.g.:
+
 ```
 cd ~/Powerwall-Dashboard
-mv enphase-dashboard enphase-dashboard-old
-git clone https://github.com/SCHibbard/enphase-dashboard.git
-cd enphase-dashboard-old
-rm current-state-canvas-panel.json enphase-basic-panel.json
-mv *.save *.json *.env ../enphase-dashboard
-cd ..
-rm -rf enphase-dashboard-old
+curl -sL --output upgrade-enphase.sh https://raw.githubusercontent.com/schibbard/enphase-dashboard/main/upgrade-enphase.sh
+chmod 775 upgrade-enphase.sh
+./upgrade-enphase.sh
 ```
 
 ## Setup ##
