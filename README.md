@@ -42,7 +42,7 @@ Powerwall-dashboard currently uses Grafana version 9.  With version 10, Grafana 
 - Grafana 10 changes the titles of panels from being centered to Left-justified.  This has proven annoying to some.
 - Canvas panels do not scale well.  If a panel is resized due to screen size, the canvas will be cut off instead of sized to fit.  Grafana version 11 sort of fixes this, by adding 'Infinite panning' to the canvas Pan and zoom option.  While the initial display of the canvas will not auto-fit to a dashboard panel's size, the graphic can be zoomed out to display the whole panel.  
 
-During the shell-script setup, if you are not running version 10, you be asked if you want to update to it.  If you are running it already or update it during setup, you will have the opportunity later to create Canvas panels for your solar array. Grafana 11 (with the new pan & zoopm features) is not offered as an update in the current release of enphase-dashboard, but will be in a future release.  You can of course manually edit tp update to grafana 11 on your own.
+During setup, if you are not running version 10, you be asked if you want to update to it.  You will also be given the opportunity to upgrade to Version 11 to enable canvas panel infinite panning. If you are running, or upgrade to either 10 or 11, you will have the opportunity later to create Canvas panels for your solar array.
 
 ## Creating Canvas Panels with enphase-canvas.py ##
 enphase-canvas.py is a terminal-based program that will generate a Grafana dashboard of your array containing 3 panels as shown above:
